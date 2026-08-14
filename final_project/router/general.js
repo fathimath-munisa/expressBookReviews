@@ -10,9 +10,34 @@ public_users.get('/api/books-data', (req, res) => {
   return res.status(200).json(books);
 });
 
-const getBooks = async () => {
+// Retrieve all books using Axios and async/await.
+const getAllBooks = async () => {
   const response = await axios.get('http://localhost:5000/api/books-data');
   return response.data;
+};
+
+// Retrieve a book by ISBN using Axios and async/await.
+const getBookByISBN = async (isbn) => {
+  const response = await axios.get('http://localhost:5000/api/books-data');
+  return response.data[isbn];
+};
+
+// Retrieve books by author using Axios and async/await.
+const getBooksByAuthor = async (author) => {
+  const response = await axios.get('http://localhost:5000/api/books-data');
+  const normalizedAuthor = author.toLowerCase();
+  return Object.values(response.data).filter(
+    (book) => book.author.toLowerCase() === normalizedAuthor
+  );
+};
+
+// Retrieve books by title using Axios and async/await.
+const getBooksByTitle = async (title) => {
+  const response = await axios.get('http://localhost:5000/api/books-data');
+  const normalizedTitle = title.toLowerCase();
+  return Object.values(response.data).filter(
+    (book) => book.title.toLowerCase() === normalizedTitle
+  );
 };
 
 public_users.post("/register", (req, res) => {
@@ -29,7 +54,7 @@ public_users.post("/register", (req, res) => {
 
 public_users.get('/', async (req, res) => {
   try {
-    const data = await getBooks();
+    const data = await getAllBooks();
     return res.status(200).json(data);
   } catch (error) {
     return res.status(500).json({ message: "Unable to retrieve books" });
@@ -38,8 +63,7 @@ public_users.get('/', async (req, res) => {
 
 public_users.get('/isbn/:isbn', async (req, res) => {
   try {
-    const data = await getBooks();
-    const book = data[req.params.isbn];
+    const book = await getBookByISBN(req.params.isbn);
     if (!book) return res.status(404).json({ message: "Book not found" });
     return res.status(200).json(book);
   } catch (error) {
@@ -49,9 +73,7 @@ public_users.get('/isbn/:isbn', async (req, res) => {
 
 public_users.get('/author/:author', async (req, res) => {
   try {
-    const data = await getBooks();
-    const author = req.params.author.toLowerCase();
-    const matches = Object.values(data).filter(book => book.author.toLowerCase() === author);
+    const matches = await getBooksByAuthor(req.params.author);
     if (matches.length === 0) return res.status(404).json({ message: "No books found" });
     return res.status(200).json(matches);
   } catch (error) {
@@ -61,9 +83,7 @@ public_users.get('/author/:author', async (req, res) => {
 
 public_users.get('/title/:title', async (req, res) => {
   try {
-    const data = await getBooks();
-    const title = req.params.title.toLowerCase();
-    const matches = Object.values(data).filter(book => book.title.toLowerCase() === title);
+    const matches = await getBooksByTitle(req.params.title);
     if (matches.length === 0) return res.status(404).json({ message: "No books found" });
     return res.status(200).json(matches);
   } catch (error) {
@@ -73,8 +93,7 @@ public_users.get('/title/:title', async (req, res) => {
 
 public_users.get('/review/:isbn', async (req, res) => {
   try {
-    const data = await getBooks();
-    const book = data[req.params.isbn];
+    const book = await getBookByISBN(req.params.isbn);
     if (!book) return res.status(404).json({ message: "Book not found" });
     return res.status(200).json(book.reviews);
   } catch (error) {
