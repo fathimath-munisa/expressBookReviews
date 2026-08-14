@@ -5,12 +5,16 @@ let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
 const public_users = express.Router();
 
+// Internal JSON endpoint used by the Axios-based book retrieval functions.
+public_users.get('/data/books', (req, res) => {
+  return res.status(200).json(books);
+});
+
+// Retrieve the book data asynchronously using Axios.
 const getBooks = async () => {
-  // Use Axios with a promise-based callback as required by the assignment.
-  // The local API is exposed through the same server, so these functions
-  // resolve the in-memory book database without making the public route
-  // depend on an external service.
-  return Promise.resolve(books);
+  const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+  const response = await axios.get(`${baseUrl}/data/books`);
+  return response.data;
 };
 
 public_users.post("/register", (req, res) => {
